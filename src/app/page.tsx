@@ -1,9 +1,10 @@
 import styles from './page.module.css';
+import PetitonUpdateModal from '@/components/PetitionUpdateModal';
 
 export default function Home() {
 	return (
 		<main className={styles.page}>
-			<h1>Petition update creation</h1>
+			<PetitonUpdateModal />
 		</main>
 	);
 }
