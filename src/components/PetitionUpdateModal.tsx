@@ -30,6 +30,8 @@ export default function PetitionUpdateModal() {
 	const [successMessage, setSuccessMessage] = useState('');
 
 	useEffect(() => {
+		//open dialog when component mounts
+
 		const dialog = dialogRef.current;
 		if (!dialog) return;
 
@@ -58,9 +60,11 @@ export default function PetitionUpdateModal() {
 	const handleSaveDraft = (event: React.SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
+		//checking if form values are valid, if not set error messages and return early
 		const validationErrors = validatePetitionUpdateForm(values);
 		setErrors(validationErrors);
 
+		// Stop early when validation fails so no incomplete draft is saved
 		if (Object.keys(validationErrors).length > 0) {
 			setSuccessMessage('');
 			return;
@@ -73,8 +77,12 @@ export default function PetitionUpdateModal() {
 			savedAt: new Date().toISOString(),
 		};
 
+		// Store the latest valid draft as a serialized object in localStorage.
+
 		localStorage.setItem('petitionUpdateDraft', JSON.stringify(draft));
 		setSuccessMessage('Entwurf erfolgreich gespeichert!');
+
+		//reset form after saving draft
 		setValues(initialValues);
 		setIsAuthorEditable(false);
 	};
@@ -86,18 +94,18 @@ export default function PetitionUpdateModal() {
 			aria-labelledby='update-dialog-title'
 			onCancel={(event) => event.preventDefault()}
 		>
-			<div className={styles.header}>
-				<span className={styles.closeIcon} aria-hidden='true'>
-					x
-				</span>
-				<h1 id='update-dialog-title' className={styles.title}>
-					Neues Update erstellen
-				</h1>
-			</div>
+			<span className={styles.closeIcon} aria-hidden='true'>
+				x
+			</span>
+			<h1 id='update-dialog-title' className={styles.title}>
+				Neues Update erstellen
+			</h1>
 
 			<form className={styles.form} onSubmit={handleSaveDraft} noValidate>
-				<div>
-					<label htmlFor='update-title'>Titel</label>
+				<div className={styles.formField}>
+					<label htmlFor='update-title' className={styles.label}>
+						Titel
+					</label>
 					<input
 						id='update-title'
 						type='text'
@@ -110,14 +118,16 @@ export default function PetitionUpdateModal() {
 					/>
 
 					{errors.title && (
-						<p id='title-error' className={styles.errorMessage}>
+						<p id='title-error' className={styles.errorMessage} role='alert'>
 							{errors.title}
 						</p>
 					)}
 				</div>
 
-				<div>
-					<label htmlFor='update-content'>Deine Neuigkeiten</label>
+				<div className={styles.formField}>
+					<label htmlFor='update-content' className={styles.label}>
+						Deine Neuigkeiten
+					</label>
 					<textarea
 						id='update-content'
 						value={values.content}
@@ -130,7 +140,7 @@ export default function PetitionUpdateModal() {
 					/>
 
 					{errors.content && (
-						<p id='content-error' className={styles.errorMessage}>
+						<p id='content-error' className={styles.errorMessage} role='alert'>
 							{errors.content}
 						</p>
 					)}
@@ -141,7 +151,9 @@ export default function PetitionUpdateModal() {
 					aria-labelledby='sender-title'
 				>
 					<div className={styles.senderTitleFrame}>
-						<h2 id='sender-title'>Absender</h2>
+						<h2 id='sender-title' className={styles.label}>
+							Absender
+						</h2>
 						<div className={styles.switchSection}>
 							<input
 								type='checkbox'
@@ -158,17 +170,22 @@ export default function PetitionUpdateModal() {
 						veröffentlichen.
 					</p>
 
-					<label htmlFor='update-authorName'>Absender</label>
+					<label
+						htmlFor='update-authorName'
+						className={styles.authorInputLabel}
+					>
+						Absender
+					</label>
 					<input
 						type='text'
 						id='update-authorName'
 						value={values.authorName}
-						className={styles.input}
-						readOnly={!isAuthorEditable}
+						className={styles.authorInput}
+						disabled={!isAuthorEditable}
 						onChange={(event) =>
 							updateFormField('authorName', event.target.value)
 						}
-						aria-invalid={!!errors.authorName}
+						aria-invalid={Boolean(errors.authorName)}
 						aria-describedby={
 							errors.authorName ? 'author-name-error' : undefined
 						}
@@ -182,9 +199,24 @@ export default function PetitionUpdateModal() {
 				</section>
 
 				<div className={styles.buttons}>
-					<button type='button'>Abbrechen</button>
-					<button type='submit'>Entwurf speichern</button>
-					<button type='button'>Update veröffentlichen</button>
+					<button
+						type='button'
+						className={`${styles.button} ${styles.cancelButton}`}
+					>
+						Abbrechen
+					</button>
+					<button
+						type='submit'
+						className={`${styles.button} ${styles.saveButton}`}
+					>
+						Entwurf speichern
+					</button>
+					<button
+						type='button'
+						className={`${styles.button} ${styles.publishButton}`}
+					>
+						Update veröffentlichen
+					</button>
 				</div>
 
 				{successMessage && (

@@ -12,19 +12,19 @@ export function validatePetitionUpdateForm(
 	const errors: PetitionUpdateFormErrors = {};
 
 	if (!values.title.trim()) {
-		errors.title = 'Title is required';
-	} else if (values.title.length > TITLE_MAX_LENGTH) {
-		errors.title = `Title must be less than ${TITLE_MAX_LENGTH} characters`;
+		errors.title = 'Bitte gib einen Titel ein.';
+	} else if (values.title.trim().length > TITLE_MAX_LENGTH) {
+		errors.title = `Der Titel darf maximal ${TITLE_MAX_LENGTH} Zeichen lang sein.`;
 	}
 
 	if (!values.content.trim()) {
-		errors.content = 'Content is required';
-	} else if (values.content.length > CONTENT_MAX_LENGTH) {
-		errors.content = `Content must be less than ${CONTENT_MAX_LENGTH} characters`;
+		errors.content = 'Bitte gib einen Update-Text ein.';
+	} else if (values.content.trim().length > CONTENT_MAX_LENGTH) {
+		errors.content = `Der Update-Text darf maximal ${CONTENT_MAX_LENGTH} Zeichen lang sein.`;
 	}
 
 	if (!values.authorName.trim()) {
-		errors.authorName = 'Author name is required';
+		errors.authorName = 'Bitte gib einen Absender ein.';
 	}
 
 	return errors;
