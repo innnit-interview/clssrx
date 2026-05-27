@@ -101,7 +101,12 @@ export default function PetitionUpdateModal() {
 				Neues Update erstellen
 			</h1>
 
-			<form className={styles.form} onSubmit={handleSaveDraft} noValidate>
+			<form
+				className={styles.form}
+				onSubmit={handleSaveDraft}
+				noValidate
+				autoComplete='off'
+			>
 				<div className={styles.formField}>
 					<label htmlFor='update-title' className={styles.label}>
 						Titel
