@@ -1,25 +1,40 @@
 'use client';
 
-import { PetitionUpdateFormValues } from '@/types/petitionUpdate';
+import {
+	PetitionUpdateDraft,
+	PetitionUpdateFormErrors,
+	PetitionUpdateFormValues,
+} from '@/types/petitionUpdate';
 import styles from './PetitionUpdateModal.module.css';
 
 import { useEffect, useRef, useState } from 'react';
+import {
+	validatePetitionUpdateForm,
+	TITLE_MAX_LENGTH,
+	CONTENT_MAX_LENGTH,
+} from '@/utils/validation';
+
+const DEFAULT_AUTHOR_NAME = 'Petra Petitionsstarterin';
 
 const initialValues = {
 	title: '',
 	content: '',
-	authorName: '',
+	authorName: DEFAULT_AUTHOR_NAME,
 };
 
-export default function PetitonUpdateModal() {
+export default function PetitionUpdateModal() {
 	const [values, setValues] = useState<PetitionUpdateFormValues>(initialValues);
 	const dialogRef = useRef<HTMLDialogElement>(null);
+	const [errors, setErrors] = useState<PetitionUpdateFormErrors>({});
 	const [isAuthorEditable, setIsAuthorEditable] = useState(false);
 	const [successMessage, setSuccessMessage] = useState('');
 
 	useEffect(() => {
-		if (dialogRef.current) {
-			dialogRef.current.showModal();
+		const dialog = dialogRef.current;
+		if (!dialog) return;
+
+		if (!dialog.open) {
+			dialog.showModal();
 		}
 	}, []);
 
@@ -32,22 +47,41 @@ export default function PetitonUpdateModal() {
 			[fieldName]: value,
 		}));
 
+		setErrors((currentErrors) => ({
+			...currentErrors,
+			[fieldName]: undefined,
+		}));
+
 		setSuccessMessage('');
 	};
 
-	const handleSaveDraft = (event: React.FormEvent) => {
+	const handleSaveDraft = (event: React.SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		//validate fields
+		const validationErrors = validatePetitionUpdateForm(values);
+		setErrors(validationErrors);
 
-		//if errors return no success
+		if (Object.keys(validationErrors).length > 0) {
+			setSuccessMessage('');
+			return;
+		}
 
-		//save to local storage
-		//show success message
+		const draft: PetitionUpdateDraft = {
+			title: values.title.trim(),
+			content: values.content.trim(),
+			authorName: values.authorName.trim(),
+			savedAt: new Date().toISOString(),
+		};
+
+		localStorage.setItem('petitionUpdateDraft', JSON.stringify(draft));
+		setSuccessMessage('Entwurf erfolgreich gespeichert!');
+		setValues(initialValues);
+		setIsAuthorEditable(false);
 	};
 
 	return (
 		<dialog
+			ref={dialogRef}
 			className={styles.modal}
 			aria-labelledby='update-dialog-title'
 			onCancel={(event) => event.preventDefault()}
@@ -67,11 +101,19 @@ export default function PetitonUpdateModal() {
 					<input
 						id='update-title'
 						type='text'
-						maxLength={100}
+						maxLength={TITLE_MAX_LENGTH}
 						className={styles.input}
 						value={values.title}
 						onChange={(e) => updateFormField('title', e.target.value)}
-					></input>
+						aria-invalid={!!errors.title}
+						aria-describedby={errors.title ? 'title-error' : undefined}
+					/>
+
+					{errors.title && (
+						<p id='title-error' className={styles.errorMessage}>
+							{errors.title}
+						</p>
+					)}
 				</div>
 
 				<div>
@@ -82,7 +124,16 @@ export default function PetitonUpdateModal() {
 						className={styles.inputLongText}
 						placeholder='Bitte schreibe ein paar Worte zu deinem Update.'
 						onChange={(e) => updateFormField('content', e.target.value)}
-					></textarea>
+						aria-invalid={!!errors.content}
+						aria-describedby={errors.content ? 'content-error' : undefined}
+						maxLength={CONTENT_MAX_LENGTH}
+					/>
+
+					{errors.content && (
+						<p id='content-error' className={styles.errorMessage}>
+							{errors.content}
+						</p>
+					)}
 				</div>
 
 				<section
@@ -107,17 +158,27 @@ export default function PetitonUpdateModal() {
 						veröffentlichen.
 					</p>
 
-					<label htmlFor='update-sender'>Absender</label>
+					<label htmlFor='update-authorName'>Absender</label>
 					<input
 						type='text'
-						id='update-sender'
+						id='update-authorName'
+						value={values.authorName}
 						className={styles.input}
 						readOnly={!isAuthorEditable}
-						value={values.authorName}
 						onChange={(event) =>
 							updateFormField('authorName', event.target.value)
 						}
+						aria-invalid={!!errors.authorName}
+						aria-describedby={
+							errors.authorName ? 'author-name-error' : undefined
+						}
 					/>
+
+					{errors.authorName && (
+						<p id='author-name-error' className={styles.errorMessage}>
+							{errors.authorName}
+						</p>
+					)}
 				</section>
 
 				<div className={styles.buttons}>
